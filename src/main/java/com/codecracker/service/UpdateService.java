@@ -36,14 +36,64 @@ public class UpdateService {
 	@PostConstruct
 	public void createBroadCaster() {
 		
-		updates=Flux.interval(Duration.ofSeconds(1L))
-		.map(element->{
-			return new Update(element.toString(),UUID.randomUUID().toString());
-		}).doOnNext(onNext->{
-			print("Publishing new element with key "+onNext.getKey());
+		setUpExampe1();
+		
+		setUpExample2();
+		
+		setUpExample3();
+		
+		setUpExample4();
+		
+		setUpExample5();
+		
+	}
+	
+	private void setUpExample5() {
+		//Processor example
+		processor=EmitterProcessor.create();
+		FluxSink<String> sink =processor.sink();
+		int state=0;
+		while(true) {
+			 print("generator with state "+state);
+			 sink.next("3 x " + state + " = " + 3*state); 
+		      if (state == 100) {
+		    	  sink.complete();
+		    	  break;
+		      }
+		      state++;
+		}
+		
+	}
+
+	private void setUpExample4() {
+		asyncTableFlux=Flux.create((emitter)->{
+			int state=0;
+			while(true) {
+				 print("generator with state "+state);
+				 emitter.next("3 x " + state + " = " + 3*state); 
+			      if (state == 100) {
+			    	  emitter.complete();
+			    	  break;
+			      }
+			      state++;
+			}
 		});
 		
-		
+	}
+
+	private void setUpExample3() {
+		tableFlux=Flux.generate(()->{
+			print("supply state");
+			return 0;
+		}, (state,sink)->{
+			 print("generator with state "+state);
+			 sink.next("3 x " + state + " = " + 3*state); 
+		      if (state == 100) sink.complete(); 
+		      return state + 1; 
+		});
+	}
+
+	private void setUpExample2() {
 		//HotSource
 		hotUpdate=DirectProcessor.create();
 		new Thread(() -> {
@@ -55,7 +105,6 @@ public class UpdateService {
 				 try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				/*
@@ -72,49 +121,21 @@ public class UpdateService {
 			}while(!hotUpdate.isTerminated());
 		}).start();
 
-		
-//		updates.subscribe();
-		tableFlux=Flux.generate(()->{
-			print("supply state");
-			return 0;
-		}, (state,sink)->{
-			 print("generator with state "+state);
-			 sink.next("3 x " + state + " = " + 3*state); 
-		      if (state == 100) sink.complete(); 
-		      return state + 1; 
-		});
-		
-		
-		asyncTableFlux=Flux.create((emitter)->{
-			int state=0;
-			while(true) {
-				 print("generator with state "+state);
-				 emitter.next("3 x " + state + " = " + 3*state); 
-			      if (state == 100) {
-			    	  emitter.complete();
-			    	  break;
-			      }
-			      state++;
-			}
-		});
-		
-		
-		//Processor example
-		processor=EmitterProcessor.create();
-		FluxSink<String> sink =processor.sink();
-		int state=0;
-		while(true) {
-			 print("generator with state "+state);
-			 sink.next("3 x " + state + " = " + 3*state); 
-		      if (state == 100) {
-		    	  sink.complete();
-		    	  break;
-		      }
-		      state++;
-		}
-		
 	}
-	
+
+	private void setUpExampe1() {
+		updates=Flux.interval(Duration.ofSeconds(1L))
+		.map(element->{
+			return new Update(element.toString(),UUID.randomUUID().toString());
+		}).doOnNext(onNext->{
+			print("Publishing new element with key "+onNext.getKey());
+		});
+	}
+
+	/**
+	 * For example 1 Creating publisher which emits update every second.
+	 * @return
+	 */
 	public Flux<Update> getStreamOfData(){
 		return updates.doOnCancel(()->{
 			print("doOnCancel");
@@ -125,6 +146,24 @@ public class UpdateService {
 		});
 	}
 	
+	/**
+	 * For example 2 Hot publisher example
+	 * @return
+	 */
+	public Flux<Update> getDataStreamHotSource() {
+		return hotUpdate.doOnCancel(()->{
+			print("doOnCancel");
+		}).doOnComplete(()->{
+			print("doOnComplete");
+		}).doOnTerminate(()->{
+			print("doOnTerminate");
+		});
+	}
+
+	/**
+	 * Example 3. Flux.generate
+	 * @return
+	 */
 	public Flux<String> getTable(){
 		return tableFlux.doOnCancel(()->{
 			print("doOnCancel");
@@ -159,7 +198,9 @@ public class UpdateService {
 		;
 	}
 
-	
+	/**
+	 * Example 4. Flux.create
+	 */
 	public Flux<String> getAsyncTable(){
 		return asyncTableFlux.doOnCancel(()->{
 			print("doOnCancel");
@@ -187,14 +228,5 @@ public class UpdateService {
 		System.out.println("T:"+Thread.currentThread()+" "+message);
 	}
 
-	public Flux<Update> getDataStreamHotSource() {
-		return hotUpdate.doOnCancel(()->{
-			print("doOnCancel");
-		}).doOnComplete(()->{
-			print("doOnComplete");
-		}).doOnTerminate(()->{
-			print("doOnTerminate");
-		});
-	}
 	
 }

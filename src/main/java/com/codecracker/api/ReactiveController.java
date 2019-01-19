@@ -22,6 +22,10 @@ public class ReactiveController {
 	
 	private int count=0;
 	
+	/**
+	 * For example 1 Creating publisher which emits update every second.
+	 * @return
+	 */
 	@RequestMapping(value="getDataStream",produces=MediaType.TEXT_EVENT_STREAM_VALUE)
 	@ResponseBody
 	public Flux<Update> getDataStream(){
@@ -33,6 +37,10 @@ public class ReactiveController {
 		});
 	}
 	
+	/**
+	 * For example 2 Hot publisher example
+	 * @return
+	 */
 	@RequestMapping(value="getDataStreamHotSource",produces=MediaType.TEXT_EVENT_STREAM_VALUE)
 	@ResponseBody
 	public Flux<Update> getDataStreamHotSource(){
@@ -44,7 +52,10 @@ public class ReactiveController {
 		});
 	}
 
-	
+	/**
+	 * 3. Flux.generate example
+	 * @return
+	 */
 	@RequestMapping(value="getTable",produces=MediaType.TEXT_EVENT_STREAM_VALUE)
 	@ResponseBody
 	public Flux<String> getTable(){
@@ -59,7 +70,10 @@ public class ReactiveController {
 	}
 
 	
-	
+	/**
+	 * 4. Flux.create example
+	 * @return
+	 */
 	@RequestMapping(value="getAsyncTable",produces=MediaType.TEXT_EVENT_STREAM_VALUE)
 	@ResponseBody
 	public Flux<String> getAsyncTable(){
@@ -74,6 +88,7 @@ public class ReactiveController {
 		});
 	}
 
+	
 	@RequestMapping(value="getTableParallel",produces=MediaType.TEXT_EVENT_STREAM_VALUE)
 	@ResponseBody
 	public ParallelFlux<String> getTableParallel(){
